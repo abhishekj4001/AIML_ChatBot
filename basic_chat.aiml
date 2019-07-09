@@ -1,0 +1,37 @@
+<aiml version="1.0.1" encoding="UTF-8">
+		<category>
+				<pattern>HELLO</pattern>
+				<template>Buffalo</template>
+		</category>
+		
+		<category>
+				<pattern>WHO ARE YOU</pattern>
+				<template>I m a hero</template>
+		</category>
+		
+		<category>
+				<pattern>WHAT IS YOUR NAME</pattern>
+				<template><srai>WHO ARE YOU</srai></template>
+		</category>
+		
+		<category>
+				<pattern>MY NAME IS *</pattern>
+				<template>Hi <star/></template>
+		</category>
+		
+		<category>
+				<pattern>OPEN *</pattern>
+				<template><system>nautilus <star/></system></template>
+		</category>
+		
+		<category>
+				<pattern>WHO INVENT YOU</pattern>
+				<template>Abhishek Jain Invent you</template>
+		</category>
+		
+		<category>
+				<pattern>SEARCH *</pattern>
+				<template><system>sudo python3 wiki.py "<star/>"</system></template>
+		</category>
+		
+</aiml>
