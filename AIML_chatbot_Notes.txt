@@ -1,0 +1,313 @@
+In this project,
+
+There are 6 files :-
+	1. std-startup.xml
+	2. basic_chat.aiml 
+	3. bot_brain.brn
+	4. read_aiml.py
+	5. script.py
+	6. Basic_tags
+
+Basic Introduction of AIML :-
+---------------------------
+
+Artificial intelligence "chatbots" are easy to write in Python with the AIML package. 
+AIML stands for Artificial Intelligence Markup Language, but it is just simple XML. 
+A 'chatbot' is a computer program or an artificial intelligence which conducts a 
+conversation via audio or textual methods.
+
+	Elements of AIML :-
+	~~~~~~~~~~~~~~~~
+		1. Category -
+			Category in AIML form the fundamental unit of knowledge. A category consists
+			of atleast two further elements: the 'pattern' and 'template' elements.
+			Here is a simple category:
+				<category>
+					<pattern>WHAT IS YOUR NAME</pattern>
+					<template>My name is Michael N.S Evanious.</template>
+				</category>
+			
+			When this category is loaded, an AIML bot will respond to the input 
+			"What is your name" with the response "My name is Michael N.S Evanious."
+
+		2. Pattern -
+			A pattern is a string of characters intended to match one or more user inputs.
+			A literal pattern like :
+				WHAT IS YOUR NAME
+			
+			will match only one input, ignoring case: "what is your name". (Pattern must be in capital letters)
+			But patterns may also contain wildcards, which match one or more words. 
+			A pattern like :
+				WHAT IS YOUR *
+				
+			will match an infinite number of inputs, including "what is your name", 
+			"what is your shoe size", "what is your purpose in life", etc. but starting
+			with "what is your......" becoz it's a pattern "WHAT IS YOUR *".
+			
+		
+		3. Template -
+			-> A template specifies the response to a matched pattern.
+			
+			-> A template may be as simple as some literal text, like :
+				My name is John
+				
+			-> A template may use variables, such as the example :
+					My name is <bot name="name"/>.
+					
+			   which will substitute the bot's name into the sentence, or
+					You told me you are <get name="user-age"/> years old.
+					
+			   which will substitute the user's age (if known) into the sentence.
+			   
+			-> Template elements include basic text formatting, conditional response 
+				(if-then/else), and random responses.
+				
+			-> Templates may also redirect to other patterns, using an element called 
+				'srai' (Symbolic Reduction in Artificial Intelligence). This can be used
+				to implement synonymy, as in this example:
+					
+					<category>
+						<pattern>WHAT IS YOUR NAME</pattern>
+						<template>My name is <bot name="name"/>.</template>
+					</category>
+					<category>
+						<pattern>WHAT ARE YOU CALLED</pattern>
+						<template>
+							<srai>what is your name</srai>
+						</template>
+					</category>
+					
+			   The first category simply answers an input "what is your name" with a 
+			   statement of the bot's name. The second category, however, says that the
+			   input "what are you called" should be redirected to the category that 
+			   matches the input "what is your name".
+			
+			-> Templates can contain other types of content, which may be processed by 
+				whatever user interface the bot is talking through. So, for example, a 
+				template may use HTML tags for formatting, which can be ignored by clients 
+				that don't support HTML.
+			
+			
+	
+1. std-startup.xml :- (Standard Startup File)
+-------------------
+
+-> It is standard to create a startup file called 'std-startup.xml' as the main entry point
+	for loading AIML files. In this case we will create a basic file that matches one 
+	pattern and takes one action. We want to match the pattern 'load aiml b', and have it 
+	load our aiml brain in response. Then We will create the basic_chat.aiml.
+	
+	In std-startup.xml file:-
+		<category>
+			<pattern>LOAD AIML B</pattern>  -> B stands for brain i.e. load aiml brain
+			<template>
+				<learn>basic_chat.aiml</learn>
+			</template>
+		</category>
+		
+		
+2. basic_chat.aiml :-
+-------------------
+	Above we created the AIML file that only handles one pattern, load aiml b. When we
+	enter that command to the bot, it will try to load basic_chat.aiml. It won't work 
+	unless we actually create it.Now create a basic_chat.aiml file with some patterns 
+	and their responses.
+	
+	Random Responses :-
+	~~~~~~~~~~~~~~~~~
+		-> You can also add random responses like this. This will respond randomly
+			when it receives a message that starts with specified pattern. 
+			The * is a wildcard that matches anything.
+			
+			<category>
+				<pattern> ONE TIME I * </pattern>
+				<template>
+					<random>
+						<li>Go on.</li>
+						<li>How old are you?</li>
+						<li>Be more specific.</li>
+						<li>I did not know that.</li>
+						<li>Are you telling the truth?</li>
+						<li>I don't know what that means.</li>
+						<li>Try to tell me that another way.</li>
+						<li>Are you talking about an animal, vegetable or mineral?</li>
+						<li>What is it?</li>
+					</random>
+				</template>
+			</category>
+
+
+3. read_aiml.py :-
+----------------
+	
+	Simplest Python Program :-
+	~~~~~~~~~~~~~~~~~~~~~~~~
+		-> It creates the aiml object, learns the startup file, and then loads the rest of
+			the aiml files. After that, it is ready to chat, and we enter an infinite loop
+			that will continue to prompt the user for a message. You will need to enter a 
+			pattern the bot recognizes. The patterns recognized depend on what AIML files 
+			you loaded.
+
+			We create the startup file as a separate entity so that we can add more aiml
+			files to the bot later without having to modify any of the programs source 
+			code. We can just add more files to learn in the startup xml file.
+			
+			
+
+			# Create the kernel and learn AIML files
+				import aiml
+				kernel = aiml.Kernel()
+				kernel.learn("std-startup.xml")
+				kernel.respond("load aiml b")
+
+			# Press CTRL-C to break this loop
+				while True:
+				print kernel.respond(raw_input("Enter your message >> "))
+
+			
+			
+			
+	Speeding up Brain Load :-
+	~~~~~~~~~~~~~~~~~~~~~~~
+		-> When you start to have a lot of AIML files, it can take a long time to learn.
+			This is where brain files come in. After the bot learns all the AIML files 
+			it can save its brain directly to a file which will drastically speed up load
+			times on subsequent runs.
+			Example:-
+					import aiml
+					import os
+
+					kernel = aiml.Kernel()
+
+					if os.path.isfile("bot_brain.brn"):
+						kernel.bootstrap(brainFile = "bot_brain.brn")
+					else:
+						kernel.bootstrap(learnFiles = "std-startup.xml", commands = "load aiml b")
+						kernel.saveBrain("bot_brain.brn")
+
+					# kernel now ready for use
+					while True:
+						print kernel.respond(raw_input("Enter your message >> "))
+	
+	
+		//The above codes help to understand the read_aiml.py file 
+		
+		
+4. script.py :- (We run this file for chatbot)
+-------------
+
+	import argparse -> Python argparse module is the preferred way to parse command line
+		arguments. Parsing command-line arguments is a very common task, which Python 
+		scripts do and behave according to the passed values.
+		
+		
+	pyttsx3 ->  To use Python for text-to-speech using a cross-platform library, pyttsx3. 
+		This lets you synthesize text in to audio you can hear. This package works in 
+		Windows, Mac, and Linux. It uses native speech drivers when available and works 
+		completely offline.
+		
+		
+	gtts -> It stands for "Google Text-To-Speech". A Python library and CLI tool to 
+		interface with Google Translate's text-to-speech API.
+		
+		
+	pygame.mixer -> pygame module for loading and playing sounds
+		mixer.init() -> initialize the mixer module
+		mixer.music.load() -> Load a music file for playback
+		mixer.music.play() -> Start the playback of the music stream
+		mixer.music.get_busy() -> 	check if the music stream is playing
+		
+		
+	pyttsx3.init() -> An application invokes the pyttsx3.init() factory function to get a
+		reference to a pyttsx3.Engine instance. During construction, the engine initializes
+		a pyttsx3.driver.DriverProxy object responsible for loading a speech engine driver
+		implementation from the pyttsx3.drivers module. 
+		
+		
+	engine.say(text : unicode, name : string) -> The speech is output according to the 
+		properties set before this command.
+		Parameters :- text – Text to speak.
+					  name – Name to associate with the utterance(speech).
+							   Included in notifications about this utterance.
+		Example :- engine.say(jarvis_speech)
+		
+		
+	engine.runAndWait() -> Blocks while processing all currently queued commands. 
+		Invokes callbacks for engine notifications appropriately. Returns when all
+		commands queued before this call are emptied from the queue.
+		
+		
+	r=sr.Recognizer() -> Here sr is a second name of Speech_Recognition module which is
+						import in read_aiml.py 
+						Like: import Speech_Recognition as sr 
+						
+		All of the magic in SpeechRecognition happens with the Recognizer class.
+		The primary purpose of a Recognizer instance is, of course, to recognize speech.
+		Each instance comes with a variety of settings and functionality for recognizing 
+		speech from an audio source.
+		
+		Each Recognizer instance has seven methods for recognizing speech from an audio
+		source using various APIs. These are:
+			
+			recognize_bing(): Microsoft Bing Speech
+			recognize_google(): Google Web Speech API  // We use this method in our project.
+			recognize_google_cloud(): Google Cloud Speech - requires installation of the google-cloud-speech package
+			recognize_houndify(): Houndify by SoundHound
+			recognize_ibm(): IBM Speech to Text
+			recognize_sphinx(): CMU Sphinx - requires installing PocketSphinx
+			recognize_wit(): Wit.ai
+			
+		Of the seven, only recognize_sphinx() works offline with the CMU Sphinx engine. 
+		The other six all require an internet connection.
+		
+		
+	sr.Microphone() -> To access your microphone with SpeechRecognizer, you’ll have to 
+						install the PyAudio package. 
+		
+		Now, instead of using an audio file as the source, you will use the default system
+		microphone. You can access this by creating an instance of the Microphone class.
+		Like:- source = sr.Microphone().
+		
+		If your system has no default microphone (such as on a RaspberryPi), or you want
+		to use a microphone other than the default, you will need to specify which one to
+		use by supplying a device index. You can get a list of microphone names by calling
+		the list_microphone_names() static method of the Microphone class.
+		
+	r.listen(source) -> Now that you’ve got a Microphone instance ready to go, it’s time to 
+		capture some input.
+		
+		You can capture input from the microphone using the listen() method of the
+		Recognizer class inside of the 'with' block. This method takes an audio source as 
+		its first argument and records input from the source until silence is detected.
+			Like :
+				with sr.Microphone() as source:
+					audio=r.listen(source)
+					
+		Once you execute the 'with' block, try speaking “hello” into your microphone.
+		Wait a moment for the interpreter prompt to display again. Once the “>>>” prompt
+		returns, you’re ready to recognize the speech.
+		If the prompt never returns, your microphone is most likely picking up too much 
+		ambient noise. 
+		
+		To handle ambient noise, you’ll need to use the 'adjust_for_ambient_noise()' 
+		method of the Recognizer class.
+			Like:
+				with sr.Microphone() as source:
+					audio=r.adjust_for_ambient_noise(source)
+					audio=r.listen(source)
+					
+			After running the above code, wait a second for adjust_for_ambient_noise() to
+			do its thing, then try speaking “hello” into the microphone. Again, you will
+			have to wait a moment for the interpreter prompt to return before trying to 
+			recognize the speech.
+		
+	
+	sr.UnknownValueError ->  Audio that cannot be matched to text by the API raises an 
+		UnknownValueError exception. You should always wrap calls to the API with try and 
+		except blocks to handle this exception.
+		
+	sr.RequestError -> RequestError exception if the API is unreachable.
+	
+	
+	
+					        ----------------*-----------------
